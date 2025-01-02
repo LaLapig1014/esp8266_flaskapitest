@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    
+    <link rel="stylesheet" href="main.css">
+    <!--
+    <script src="../static/main.js"></script>
+    
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+   
+    <script>
+        function sendData(s) {
+
+            links="http://192.168.38.100:8080/putdataurl?MID=A03&state="+s;
+            console.log(links);
+            fetch(links, {
+                method: 'PUT',
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+            refreshdata();
+        }
+        function refreshdata(){
+            fetch('http://192.168.38.100:8080/getdata')  // 替換為你要請求的 URL
+            .then(response => {
+                if (!response.ok) {
+                throw new Error('Network response was not ok');
+                }
+                return response.json();  // 將回應轉換為 JSON 格式
+            })
+            .then(data => {
+                console.log(data);
+                let msgg=data["ID"]+","+data["state"]
+                document.getElementById("msg").innerHTML=msgg;
+                if(data["state"]=="on"){
+                    console.log("on");
+                    document.getElementById("box").style.backgroundColor="darkturquoise";
+                }
+                else if(data["state"]=="off"){
+                    console.log("off");
+                    document.getElementById("box").style.backgroundColor="darkgray";
+                }
+                // 輸出解析後的 JSON 資料
+                // 這裡可以使用資料做其他處理
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+        }
+        window.onload=function(){
+            refreshdata();
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Home page</h1>
+
+    <div id="box" style="width: 100px; height: 70px;"></div>
+
+    <p id="msg">{{ msg }}</p>
+    
+
+    <button onclick="sendData('on')">Send PUT Request ON</button>
+    <button onclick="sendData('off')">Send PUT Request OFF</button>
+    <button onclick="refreshdata()">refreshdata</button>
+</body>
+
+</html>
