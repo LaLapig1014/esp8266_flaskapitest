@@ -1,11 +1,7 @@
 from flask import Flask, request, render_template
 from flask import Flask, send_from_directory
 from flask import Flask, jsonify
-import random
-import qrcode
 import json
-import datetime
-import os
 def getpin():
     pin=""
     for i in range(6):
