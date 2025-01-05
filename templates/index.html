@@ -3,71 +3,89 @@
 
 <head>
     <meta charset="utf-8">
-    
-    <link rel="stylesheet" href="main.css">
-    <!--
-    <script src="../static/main.js"></script>
-    
-    -->
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-   
-    <script>
-        function sendData(s) {
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
+        import { getDatabase, ref, get ,update,set} from "https://www.gstatic.com/firebasejs/9.21.0/firebase-database.js";
 
-            links="https://esp8266-flaskapitest.vercel.app/putdataurl?MID=A03&state="+s;
-            console.log(links);
-            fetch(links, {
-                method: 'PUT',
-            })
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error('Error:', error));
-            refreshdata();
+        const firebaseConfig = {
+            apiKey: "AIzaSyCH-3I1khEsBMFrEK78w7DcjakadzWsjX0",
+            authDomain: "esp8266-apitest.firebaseapp.com",
+            databaseURL: "https://esp8266-apitest-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "esp8266-apitest",
+            storageBucket: "esp8266-apitest.firebasestorage.app",
+            messagingSenderId: "200069171086",
+            appId: "1:200069171086:web:ae87be4467512846bf86df",
+            measurementId: "G-8M5GPGBJ3H"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        
+        async function refreshscreen(){
+            var st=document.getElementById("msg").innerHTML;
+            st=st.split(',');
+            console.log(st[0],st[1]);
+            if(st[1]=="on"){
+                document.getElementById("box").style.backgroundColor="darkcyan";
+            }else if(st[1]=="off"){
+                document.getElementById("box").style.backgroundColor="darkgray";
+            }
         }
-        function refreshdata(){
-            fetch('https://esp8266-flaskapitest.vercel.app/getdata')  // 替換為你要請求的 URL
-            .then(response => {
-                if (!response.ok) {
-                throw new Error('Network response was not ok');
-                }
-                return response.json();  // 將回應轉換為 JSON 格式
-            })
-            .then(data => {
-                console.log(data);
-                let msgg=data["ID"]+","+data["state"]
-                document.getElementById("msg").innerHTML=msgg;
-                if(data["state"]=="on"){
-                    console.log("on");
-                    document.getElementById("box").style.backgroundColor="darkturquoise";
-                }
-                else if(data["state"]=="off"){
-                    console.log("off");
-                    document.getElementById("box").style.backgroundColor="darkgray";
-                }
-                // 輸出解析後的 JSON 資料
-                // 這裡可以使用資料做其他處理
-            })
-            .catch(error => {
-                console.error('There has been a problem with your fetch operation:', error);
-            });
+
+        async function getdata() {
+            const dbRef = ref(database, "ESP8266/");
+            const snapshot = await get(dbRef);
+            var MID = "";
+            var status = "";
+            if (snapshot.exists()) {
+                console.log(snapshot.val());
+                MID = snapshot.val()["ID"];
+                status = snapshot.val()["status"];
+                console.log(MID, status);
+            } else {
+                console.log("No data available");
+            }
+            document.getElementById("msg").innerHTML = MID + "," + status;
+            refreshscreen();
+            
         }
-        window.onload=function(){
-            refreshdata();
+        async function partialUpdate(s) {
+            const dbRef = ref(database, "ESP8266/"); // 替換為要更新的節點路徑
+            const partialData = {
+                status: s  // 僅更新 status 字段
+            };
+
+            try {
+                await update(dbRef, partialData); // 使用 update 方法進行部分更新
+                console.log("Data partially updated successfully!");
+            } catch (error) {
+                console.error("Error updating data:", error);
+            }
+            getdata();
         }
+        
+        window.onload = function () {
+            getdata();
+            refreshscreen();
+        };
+        window.getdata = getdata;
+        window.partialUpdate=partialUpdate;
+        window.refreshscreen=refreshscreen;
     </script>
+
 </head>
 
 <body>
     <h1>Home page</h1>
 
     <div id="box" style="width: 100px; height: 70px;"></div>
-
-    <p id="msg">{{ msg }}</p>
-    
-
-    <button onclick="sendData('on')">Send PUT Request ON</button>
-    <button onclick="sendData('off')">Send PUT Request OFF</button>
-    <button onclick="refreshdata()">refreshdata</button>
+    <p id="msg">A03,off</p>
+    <button onclick="partialUpdate('on')">ON</button>
+    <button onclick="partialUpdate('off')">OFF</button>
+    <button onclick="getdata()">Refresh Data</button>
 </body>
 
 </html>
