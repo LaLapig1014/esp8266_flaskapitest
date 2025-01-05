@@ -4,10 +4,21 @@ from flask import Flask, jsonify
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
-
+import base64
 import json
 
-cred = credentials.Certificate("esp8266-apitest-firebase-adminsdk-iwwxn-eca0c378ea.json")  # 替換為你的密鑰路徑
+def get_firebase_credential():
+    with open('esp8266_encrypt.txt', 'r', encoding="UTF-8") as enc:
+        encryptdata=enc.read()
+    #print(encryptdata)
+    decoded_bytes = base64.b64decode(encryptdata)
+    decoded_data = json.loads(decoded_bytes.decode('utf-8'))  # 解碼後重新轉換為 JSON
+    #print("\nDecoded Data:")
+    #print(decoded_data)
+    return decoded_data
+    # 返回密鑰資訊（原來 JSON 檔案的內容）
+    
+cred = credentials.Certificate(get_firebase_credential())  # 替換為你的密鑰路徑
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://esp8266-apitest-default-rtdb.asia-southeast1.firebasedatabase.app/'  # 替換為你的 Realtime Database URL
 })
