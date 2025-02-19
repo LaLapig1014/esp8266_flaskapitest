@@ -101,8 +101,8 @@ def page_not_found(error):
     return render_template('404.html'), 404
 
 if __name__ == "__main__":
-    app.run(host="localhost", port=8080, debug=True)
-    #app.run(debug=True)
+    #app.run(host="192.168.38.100", port=8080, debug=True)
+    app.run(debug=True)
 
 
 #render_template將會找尋html檔案傳送給使用者
